@@ -49,10 +49,16 @@ func main() {
 
 	var SNDCTL_DSP_CHANNELS, SNDCTL_DSP_SPEED, SNDCTL_DSP_SETFMT uint32 = 3221508102, 3221508098, 3221508101
 
-	afd, err := os.OpenFile(os.Args[1], os.O_RDONLY, 0)
+	var afd *os.File
 
-	if err != nil {
-		log.Fatal("no audio file specified")
+	if os.Args[1] == "-" {
+		afd = os.Stdin
+	} else {
+		afd, err = os.OpenFile(os.Args[1], os.O_RDONLY, 0)
+
+		if err != nil {
+			log.Fatal("no audio file specified")
+		}
 	}
 
 	defer afd.Close()
@@ -69,6 +75,12 @@ func main() {
 
 	if len(os.Args) == 3 {
 		frequency, _ = strconv.Atoi(os.Args[2])
+	}
+
+	blen := 5 * uint32(frequency) * 2 * AFMT_S16_NE
+
+	if os.Args[1] == "-" {
+		blen = 2048
 	}
 
 	type setfmt struct {
@@ -94,7 +106,7 @@ func main() {
 	fmt.Printf("Speed set to %v HZ\n", tmp.a)
 
 	/* 5 sec data (stereo) */
-	buf := make([]byte, 5*uint32(frequency)*2*AFMT_S16_NE)
+	buf := make([]byte, blen)
 
 	for {
 		_, err := afd.Read(buf)
