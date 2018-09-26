@@ -25,15 +25,22 @@ func main() {
 
 	var oss_device string
 
-	if _, err := os.Stat("/dev/dsp1"); err != nil {
-		if _, err := os.Stat("/dev/audio1"); err != nil {
-			oss_device = "/dev/audio1"
-		} else {
-			log.Fatal("no audio dev note found")
+	cmd = exec.Command("sh", "-c", "ls /dev/dsp*")
+	out, err = cmd.CombinedOutput()
+
+	if err != nil {
+		cmd = exec.Command("sh", "-c", "ls /dev/audio*")
+		out, err = cmd.CombinedOutput()
+
+		if err != nil {
+			log.Fatal("no audio dev node found")
 		}
-	} else {
-		oss_device = "/dev/dsp1"
 	}
+
+	sar := strings.Split(string(out), "\n")
+	oss_device = sar[0]
+
+	fmt.Printf("Selected audio dev node %s\n", oss_device)
 
 	if len(os.Args) < 2 {
 		log.Fatal(fmt.Errorf(" --> Usage: %s raw_audio_file [audio_frequency]\n", os.Args[0]))
