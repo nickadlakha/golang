@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -114,15 +115,66 @@ func main() {
 
 	/* 5 sec data (stereo) */
 	buf := make([]byte, blen)
+	sch := make(chan bool)
+	flag := 1
+
+	go func() {
+		<-sch
+
+		h, m, s, us := 0, 0, 0, 0
+
+		for flag > 0 {
+			time.Sleep(100000000 * time.Nanosecond)
+			fmt.Fprintf(os.Stderr, "\r%02d:%02d:%02d:%0d", h, m, s, us)
+			us++
+
+			if us > 9 {
+				s = s + 1
+				us = 0
+			}
+
+			if s > 59 {
+				m = m + 1
+				s = 0
+			}
+
+			if m > 59 {
+				h = h + 1
+				m = 0
+			}
+
+			if h > 23 {
+				h = 0
+			}
+		}
+
+		sch <- true
+	}()
+
+	defer close(sch)
+
+	var n int
+
+	if n, err = afd.Read(buf); err != nil {
+		log.Fatal(err)
+	}
+
+	sch <- true
+
+	osfd.Write(buf[:n])
 
 	for {
-		_, err := afd.Read(buf)
+		n, err = afd.Read(buf)
 
 		if err != nil {
-			fmt.Println(err)
+			flag = 0
 			break
 		}
 
-		osfd.Write(buf)
+		osfd.Write(buf[:n])
 	}
+
+	<-sch
+
+	fmt.Println()
 }
