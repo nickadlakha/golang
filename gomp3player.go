@@ -36,11 +36,7 @@ func main() {
 
 	if len(os.Args[1]) == 1 && os.Args[1] == "-" {
 		res = C.mpg123_open_fd(mh, 0)
-	}
-
-	url, _ := url.Parse(os.Args[1])
-
-	if url.Scheme == "http" || url.Scheme == "https" {
+	} else if url, _ := url.Parse(os.Args[1]); url.Scheme == "http" || url.Scheme == "https" {
 		var client *http.Client
 
 		if url.Scheme == "https" {
