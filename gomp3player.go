@@ -42,9 +42,14 @@ func main() {
 		if url.Scheme == "https" {
 			transport := &http.Transport{}
 			transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-			client = &http.Client{Transport: transport}
+			client = &http.Client{
+				Transport: transport,
+				Timeout:   5 * time.Minute,
+			}
 		} else {
-			client = &http.Client{}
+			client = &http.Client{
+				Timeout: 5 * time.Minute,
+			}
 		}
 
 		request, err := http.NewRequest("GET", url.String(), nil)
@@ -75,6 +80,7 @@ func main() {
 
 		go func() {
 			defer syscall.Close(int(pfd[1]))
+			defer response.Body.Close()
 
 			for {
 				n, err := response.Body.Read(lbuf[:])
