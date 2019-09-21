@@ -11,6 +11,7 @@ RUN mkdir /GOJUKEBOX
 WORKDIR /GOJUKEBOX
 COPY . /GOJUKEBOX
 RUN go get github.com/gorilla/mux
-RUN go build -o gojukebox jukebox.go Mp3Player.go   
+RUN go build gomp3player.go
+RUN go build -o gojukebox jukebox.go   
 EXPOSE 3000
 CMD ["/GOJUKEBOX/gojukebox"]

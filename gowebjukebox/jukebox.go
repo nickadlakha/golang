@@ -5,6 +5,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"os/exec"
 	"sync"
 
 	"github.com/gorilla/mux"
@@ -15,6 +17,24 @@ var (
 	songlist = make(chan string, 100)
 	playerR  = true
 )
+
+func Mp3Player(songlist <-chan string) {
+	tmpdir := os.TempDir()
+
+	for {
+		songEntry, ok := <-songlist
+
+		if !ok {
+			break
+		}
+
+		exec.Command("./gomp3player", songEntry).Run()
+
+		if songEntry[:len(tmpdir)] == tmpdir {
+			os.Remove(songEntry)
+		}
+	}
+}
 
 func hFunc(w http.ResponseWriter, r *http.Request) {
 	songEntry := ""
