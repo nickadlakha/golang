@@ -44,12 +44,9 @@ func main() {
 			transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 			client = &http.Client{
 				Transport: transport,
-				Timeout:   5 * time.Minute,
 			}
 		} else {
-			client = &http.Client{
-				Timeout: 5 * time.Minute,
-			}
+			client = &http.Client{}
 		}
 
 		request, err := http.NewRequest("GET", url.String(), nil)
