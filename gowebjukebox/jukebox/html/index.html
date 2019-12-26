@@ -1,6 +1,9 @@
 <html>
 <head>
   <title>mp3 url / mp3 file</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <script src="jquery.min.js"></script>
   <script>
     var submit = '<input type="submit" value="submit">';
@@ -15,14 +18,22 @@
       $("#mp3form").html('MP3 Upload: <input type="file", id="mp3file", name="mp3file"> \
       <input type="hidden" id="flag" name="flag" value="2"><br><br>' + submit);
     }
+    
+    function mp3Sync() {
+      $("#mp3form").html('Master Host: <input type="text", id="mp3sync", name="mp3sync"> \
+      <input type="hidden" id="flag" name="flag" value="3"><br><br>' + submit);
+    }
+      
 
   </script>
 </head>
 <body>
   <form id="mp3form", name="mp3form", action="/", method="post">
     <input type="radio" onclick="mp3Url()"> MP3 Url
-    <br>
+    <br />
     <input type="radio" onclick="mp3Upload()"> Mp3 Upload
+    <br />
+    <input type="radio" onclick="mp3Sync()"> Sync With Master
   </form>
 </body>
 </html>
