@@ -8,8 +8,8 @@ iii) execute go build jukebox.go
 
 iv) running jukebox, go to ~/go/src/gowebjukebox/jukebox
 
-a) running a master node
-    at the command prompt run the following command
+a) running a master node \n
+    at the command prompt run the following command \n
         SMASTER=1 AMQP_USER=rabbitmq_user AMQP_PASSWD=rabbitmq_password ./jukebox
 b) running a non master node
         run the following command
