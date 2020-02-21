@@ -264,7 +264,7 @@ func main() {
 	}).Methods("GET")
 
 	router.HandleFunc("/jquery.min.js", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "scripts/jquery.min.js")
+		http.ServeFile(w, r, "html/jquery.min.js")
 	}).Methods("GET")
 
 	router.HandleFunc("/pcmdata", func(w http.ResponseWriter, r *http.Request) {
