@@ -351,7 +351,7 @@ func Mp3Player(songlist <-chan string, msgQC *jst.JukeboxStruct) {
 			var err error
 
 			for {
-				res = C.mpg123_read(mh, (*C.uchar)(unsafe.Pointer(&buf[0])), C.ulong(len(buf)), &sizee)
+				res = C.mpg123_read(mh, (unsafe.Pointer(&buf[0])), C.ulong(len(buf)), &sizee)
 
 				if sizee > 0 && (res == C.MPG123_OK || res == C.MPG123_DONE) {
 
@@ -371,7 +371,7 @@ func Mp3Player(songlist <-chan string, msgQC *jst.JukeboxStruct) {
 		} else {
 
 			for {
-				res = C.mpg123_read(mh, (*C.uchar)(unsafe.Pointer(&buf[0])), C.ulong(len(buf)), &sizee)
+				res = C.mpg123_read(mh, (unsafe.Pointer(&buf[0])), C.ulong(len(buf)), &sizee)
 
 				if sizee > 0 && (res == C.MPG123_OK || res == C.MPG123_DONE) {
 					frames = C.snd_pcm_bytes_to_frames(pcmhandle, C.long(sizee))

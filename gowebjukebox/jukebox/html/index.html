@@ -1,39 +1,74 @@
 <html>
-<head>
-  <title>mp3 url / mp3 file</title>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <script src="jquery.min.js"></script>
-  <script>
-    var submit = '<input type="submit" value="submit">';
+  <head>
+    <title>mp3 url / mp3 file</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <style>
+	  html, body {
+	    width: 100%;
+	    height: 100%;
+	    padding: 0;
+	    margin: 0;
+	  }
 
-    function mp3Url() {
-      $("#mp3form").html('MP3 Url: <input type="text", id="mp3url", name="mp3url"> \
-      <input type="hidden" id="flag" name="flag" value="1">' + submit);
-    }
+	  .centered-wrapper {
+	    position: relative;
+	    text-align: center;
+	  }
 
-    function mp3Upload() {
-      $("#mp3form").attr("enctype", "multipart/form-data");
-      $("#mp3form").html('MP3 Upload: <input type="file", id="mp3file", name="mp3file"> \
-      <input type="hidden" id="flag" name="flag" value="2"><br><br>' + submit);
-    }
-    
-    function mp3Sync() {
-      $("#mp3form").html('Master Host: <input type="text", id="mp3sync", name="mp3sync"> \
-      <input type="hidden" id="flag" name="flag" value="3"><br><br>' + submit);
-    }
-      
+	  .centered-wrapper:before {
+	    content: "";
+	    position: relative;
+	    display: inline-block;
+	    width: 0; height: 100%;
+	    vertical-align: middle;
+	  }
 
-  </script>
-</head>
-<body>
-  <form id="mp3form", name="mp3form", action="/", method="post">
-    <input type="radio" onclick="mp3Url()"> MP3 Url
-    <br />
-    <input type="radio" onclick="mp3Upload()"> Mp3 Upload
-    <br />
-    <input type="radio" onclick="mp3Sync()"> Sync With Master
-  </form>
-</body>
+	  .centered-content {
+	    display: inline-block;
+	    vertical-align: middle;
+	    outline: 1px solid black;
+	  }
+
+	  .radioLeft {
+	    text-align:left;
+	  }
+
+	  body {
+        background-color: rgb(85, 107, 47);
+      }
+    </style>
+    <script src="jquery.min.js"></script>
+    <script>
+      var submit = '<input type="submit" value="submit">';
+
+      function mp3Url() {
+        $("#mp3form").html('MP3 Url: <input type="text", id="mp3url", name="mp3url"> \
+        <input type="hidden" id="flag" name="flag" value="1">' + submit);
+      }
+
+      function mp3Upload() {
+        $("#mp3form").attr("enctype", "multipart/form-data");
+        $("#mp3form").html('MP3 Upload: <input type="file", id="mp3file", name="mp3file"> \
+        <input type="hidden" id="flag" name="flag" value="2"><br><br>' + submit);
+      }
+
+      function mp3Sync() {
+        $("#mp3form").html('Master Host: <input type="text", id="mp3sync", name="mp3sync"> \
+        <input type="hidden" id="flag" name="flag" value="3"><br><br>' + submit);
+      }
+    </script>
+  </head>
+  <body class="centered-wrapper">
+    <div class="centered-content">
+      <form id="mp3form", name="mp3form", action="/", method="post" class="radioLeft">
+        <input type="radio" onclick="mp3Url()"> MP3 Url
+        <br />
+        <input type="radio" onclick="mp3Upload()"> Mp3 Upload
+        <br />
+        <input type="radio" onclick="mp3Sync()"> Sync With Master
+      </form>
+    </dev>
+  </body>
 </html>

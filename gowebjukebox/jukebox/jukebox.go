@@ -23,6 +23,18 @@ var (
 	msgQ     jst.JukeboxStruct
 )
 
+var htmlData = `
+	<html>
+      <head>
+        <title>Response</title>
+		  <meta http-equiv = "refresh" content = "3; url = /"/>
+	  </head>
+	  <body>
+	    <p>%s</p>
+	  </body>
+	</html>
+	`
+
 func getAMQPConnection(host string) (*amqp.Channel, *amqp.Channel, *amqp.Connection, error) {
 	var connection *amqp.Connection
 	var err error
@@ -199,7 +211,7 @@ BRK:
 
 	if erroStr != "" {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, erroStr)
+		fmt.Fprintf(w, fmt.Sprintf(htmlData, erroStr))
 		return
 	} else {
 		mu.Lock()
@@ -220,7 +232,7 @@ BRK:
 
 IBRK:
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, message)
+	fmt.Fprintf(w, fmt.Sprintf(htmlData, message))
 }
 
 func main() {
