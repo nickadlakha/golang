@@ -1,10 +1,10 @@
 package main
 
 /*
-#cgo LDFLAGS: -lmpg123 -lasound
+#cgo LDFLAGS: -lmpg123 -lao
+#include <unistd.h>
 #include <mpg123.h>
-#include <linux/soundcard.h>
-#include <alsa/asoundlib.h>
+#include <ao/ao.h>
 */
 import "C"
 
@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 
+	"log"
 	"net/http"
 	"net/url"
 
@@ -22,17 +23,18 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	if len(os.Args) < 2 {
 		fmt.Fprintf(os.Stderr, "Usage: %s [url|filename|-]\n", os.Args[0])
-		os.Exit(2)
+		os.Exit(1)
 	}
 
 	var mh *C.mpg123_handle
+	var res C.int
 
 	C.mpg123_init()
 	mh = C.mpg123_new(nil, nil)
-
-	var res C.int
 
 	if len(os.Args[1]) == 1 && os.Args[1] == "-" {
 		res = C.mpg123_open_fd(mh, 0)
@@ -55,17 +57,17 @@ func main() {
 		request, err := http.NewRequest("GET", url.String(), nil)
 
 		if err != nil {
-			panic(fmt.Errorf("Get request Error: %s", err.Error()))
+			log.Fatalf("Get request Error: %s", err.Error())
 		}
 
 		response, err := client.Do(request)
 
 		if err != nil {
-			panic(fmt.Errorf("No reponse from server: %s", err.Error()))
+			log.Fatalf("No reponse from server: %s", err.Error())
 		}
 
 		if response.Status != "200 OK" {
-			panic(response.Status)
+			log.Fatalf("%v", response.Status)
 		}
 
 		var (
@@ -100,7 +102,7 @@ func main() {
 	defer C.mpg123_exit()
 
 	if res < 0 {
-		panic("Error opening file")
+		log.Fatalf("Error opening file")
 	}
 
 	defer C.mpg123_close(mh)
@@ -109,62 +111,30 @@ func main() {
 		rate     C.long
 		encoding C.int
 		channels C.int
-		swidth   C.int = 16
 	)
 
 	C.mpg123_getformat(mh, &rate, &channels, &encoding)
 
-	buf := make([]byte, 3*C.int(rate)*swidth*channels/8)
-
-	var pcmhandle *C.snd_pcm_t
-
-	res = C.snd_pcm_open(&pcmhandle, C.CString("default"), C.SND_PCM_STREAM_PLAYBACK, 0)
-
-	if res < 0 {
-		panic(C.snd_strerror(res))
-	}
-
-	var hwparams *C.snd_pcm_hw_params_t
-
-	res = C.snd_pcm_hw_params_malloc(&hwparams)
-
-	if res < 0 {
-		panic(C.snd_strerror(res))
-	}
-
-	res = C.snd_pcm_hw_params_any(pcmhandle, hwparams)
-
-	if res < 0 {
-		C.snd_pcm_hw_params_free(hwparams)
-		panic(C.snd_strerror(res))
-	}
-
-	var endianess uint32 = 0x01020304
-
-	if (*[4]byte)(unsafe.Pointer(&endianess))[0] == 0x04 {
-		endianess = C.SND_PCM_FORMAT_S16_LE
-	} else {
-		endianess = C.SND_PCM_FORMAT_S16_BE
-	}
-
-	C.snd_pcm_hw_params_set_format(pcmhandle, hwparams, C.snd_pcm_format_t(endianess))
-	C.snd_pcm_hw_params_set_rate(pcmhandle, hwparams, C.uint(rate), 0)
-	C.snd_pcm_hw_params_set_channels(pcmhandle, hwparams, C.uint(channels))
-	C.snd_pcm_hw_params(pcmhandle, hwparams)
-	C.snd_pcm_hw_params_free(hwparams)
-
-	var (
-		frames C.long
-		sizee  C.ulong
-	)
-
-	C.snd_pcm_prepare(pcmhandle)
-	defer C.snd_pcm_close(pcmhandle)
-
+	buf := make([]byte, 3*C.int(rate)*C.mpg123_encsize(encoding)*8*channels/8)
 	sch := make(chan bool)
 	counterFlag := 1
 
+	var dev *C.ao_device
+	var format C.ao_sample_format
+
+	format.bits = C.mpg123_encsize(encoding) * 8
+	format.rate = (C.int)(rate)
+	format.channels = channels
+	format.byte_format = C.AO_FMT_NATIVE
+	format.matrix = nil
+
+	C.ao_initialize()
+	driver := C.ao_default_driver_id()
+
+	dev = C.ao_open_live(driver, &format, nil)
+
 	go func() {
+		defer close(sch)
 		<-sch
 
 		h, m, s, us := 0, 0, 0, 0
@@ -195,35 +165,48 @@ func main() {
 		}
 
 		fmt.Fprintf(os.Stderr, "\n")
-		sch <- true
 	}()
 
-	defer close(sch)
+	var sizee C.ulong
+	chpcm := make(chan []byte)
 
-	res = C.mpg123_read(mh, (*C.uchar)(unsafe.Pointer(&buf[0])), C.ulong(len(buf)), &sizee)
+	go func() {
+		var pcmbuf []byte
+
+		for {
+			pcmbuf = <-chpcm
+
+			if len(pcmbuf) == 0 {
+				counterFlag = 0
+				break
+			}
+			C.ao_play(dev, (*C.char)(unsafe.Pointer(&pcmbuf[0])), (C.uint)(len(pcmbuf)))
+		}
+	}()
+
+	res = C.mpg123_read(mh, unsafe.Pointer(&buf[0]), C.ulong(len(buf)), &sizee)
 
 	if sizee > 0 && (res == C.MPG123_OK || res == C.MPG123_DONE) {
 		sch <- true
-		frames = C.snd_pcm_bytes_to_frames(pcmhandle, C.long(sizee))
-		C.snd_pcm_writei(pcmhandle, unsafe.Pointer(&buf[0]), C.ulong(frames))
+		chpcm <- buf[:sizee]
 	} else {
 		counterFlag = 0
-		panic("Couldn't start playback")
+		close(chpcm)
+		log.Fatalf("Couldn't start playback")
 	}
 
 	for {
-		res = C.mpg123_read(mh, (*C.uchar)(unsafe.Pointer(&buf[0])), C.ulong(len(buf)), &sizee)
+		res = C.mpg123_read(mh, unsafe.Pointer(&buf[0]), C.ulong(len(buf)), &sizee)
 
 		if sizee > 0 && (res == C.MPG123_OK || res == C.MPG123_DONE) {
-			frames = C.snd_pcm_bytes_to_frames(pcmhandle, C.long(sizee))
-			C.snd_pcm_writei(pcmhandle, unsafe.Pointer(&buf[0]), C.ulong(frames))
+			chpcm <- buf[:sizee]
 		} else {
+			close(chpcm)
 			break
 		}
 	}
 
-	C.snd_pcm_drain(pcmhandle)
-	counterFlag = 0
-
 	<-sch
+	C.ao_close(dev)
+	C.ao_shutdown()
 }
