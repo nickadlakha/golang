@@ -115,11 +115,6 @@ func main() {
 
 	C.mpg123_getformat(mh, &rate, &channels, &encoding)
 
-	buf := make([]byte, 3*C.int(rate)*C.mpg123_encsize(encoding)*8*channels/8)
-	sch := make(chan bool)
-	counterFlag := 1
-
-	var dev *C.ao_device
 	var format C.ao_sample_format
 
 	format.bits = C.mpg123_encsize(encoding) * 8
@@ -129,9 +124,24 @@ func main() {
 	format.matrix = nil
 
 	C.ao_initialize()
+	defer C.ao_shutdown()
+
 	driver := C.ao_default_driver_id()
 
-	dev = C.ao_open_live(driver, &format, nil)
+	if driver == -1 {
+		log.Panic("Couldn't get the default driver id")
+	}
+
+	var dev *C.ao_device = C.ao_open_live(driver, &format, nil)
+
+	if dev == nil {
+		log.Panic("Couldn't open a live playback audio device")
+	}
+
+	defer C.ao_close(dev)
+
+	sch := make(chan bool)
+	counterFlag := 1
 
 	go func() {
 		defer close(sch)
@@ -167,46 +177,55 @@ func main() {
 		fmt.Fprintf(os.Stderr, "\n")
 	}()
 
+	sreadlen := int(3 * C.int(rate) * C.mpg123_encsize(encoding) * 8 * channels / 8)
+	buf := make([]byte, sreadlen*2)
+	gbindex := 0
+	bindex := 0
+	chpcm := make(chan int, 1)
+
 	var sizee C.ulong
-	chpcm := make(chan []byte)
 
 	go func() {
-		var pcmbuf []byte
+		rbuflen := 0
 
 		for {
-			pcmbuf = <-chpcm
+			rbuflen = <-chpcm
 
-			if len(pcmbuf) == 0 {
+			if rbuflen == 0 {
 				counterFlag = 0
 				break
 			}
-			C.ao_play(dev, (*C.char)(unsafe.Pointer(&pcmbuf[0])), (C.uint)(len(pcmbuf)))
+
+			C.ao_play(dev, (*C.char)(unsafe.Pointer(&buf[gbindex])), C.uint(rbuflen))
+			gbindex ^= sreadlen
 		}
 	}()
 
-	res = C.mpg123_read(mh, unsafe.Pointer(&buf[0]), C.ulong(len(buf)), &sizee)
+	res = C.mpg123_read(mh, unsafe.Pointer(&buf[bindex]), C.ulong(sreadlen), &sizee)
 
 	if sizee > 0 && (res == C.MPG123_OK || res == C.MPG123_DONE) {
 		sch <- true
-		chpcm <- buf[:sizee]
+		chpcm <- int(sizee)
+		bindex ^= sreadlen
 	} else {
 		counterFlag = 0
 		close(chpcm)
-		log.Fatalf("Couldn't start playback")
+		log.Panic("Couldn't start playback")
 	}
 
 	for {
-		res = C.mpg123_read(mh, unsafe.Pointer(&buf[0]), C.ulong(len(buf)), &sizee)
+		if gbindex != bindex {
+			res = C.mpg123_read(mh, unsafe.Pointer(&buf[bindex]), C.ulong(sreadlen), &sizee)
 
-		if sizee > 0 && (res == C.MPG123_OK || res == C.MPG123_DONE) {
-			chpcm <- buf[:sizee]
-		} else {
-			close(chpcm)
-			break
+			if sizee > 0 && (res == C.MPG123_OK || res == C.MPG123_DONE) {
+				chpcm <- int(sizee)
+				bindex ^= sreadlen
+			} else {
+				close(chpcm)
+				break
+			}
 		}
 	}
 
 	<-sch
-	C.ao_close(dev)
-	C.ao_shutdown()
 }
