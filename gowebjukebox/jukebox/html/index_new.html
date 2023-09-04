@@ -1,0 +1,74 @@
+<html>
+  <head>
+    <title>audio url / audio file</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <style>
+	  html, body {
+	    width: 100%;
+	    height: 100%;
+	    padding: 0;
+	    margin: 0;
+	  }
+
+	  .centered-wrapper {
+	    position: relative;
+	    text-align: center;
+	  }
+
+	  .centered-wrapper:before {
+	    content: "";
+	    position: relative;
+	    display: inline-block;
+	    width: 0; height: 100%;
+	    vertical-align: middle;
+	  }
+
+	  .centered-content {
+	    display: inline-block;
+	    vertical-align: middle;
+	    outline: 1px solid black;
+	  }
+
+	  .radioLeft {
+	    text-align:left;
+	  }
+
+	  body {
+        background-color: rgb(85, 107, 47);
+      }
+    </style>
+    <script src="jquery.min.js"></script>
+    <script>
+      var submit = '<input type="submit" value="submit">';
+
+      function audioUrl() {
+        $("#audioform").html('Audio/video Url: <input type="text", id="audiourl", name="audiourl"> \
+        <input type="hidden" id="flag" name="flag" value="1">' + submit);
+      }
+
+      function audioUpload() {
+        $("#audioform").attr("enctype", "multipart/form-data");
+        $("#audioform").html('Audio/Video Upload: <input type="file", id="audiofile", name="audiofile"> \
+        <input type="hidden" id="flag" name="flag" value="2"><br><br>' + submit);
+      }
+
+      function audioSync() {
+        $("#audioform").html('Master Host: <input type="text", id="audiosync", name="audiosync"> \
+        <input type="hidden" id="flag" name="flag" value="3"><br><br>' + submit);
+      }
+    </script>
+  </head>
+  <body class="centered-wrapper">
+    <div class="centered-content">
+      <form id="audioform", name="audioform", action="/", method="post" class="radioLeft">
+        <input type="radio" onclick="audioUrl()"> Audio/Video Url
+        <br />
+        <input type="radio" onclick="audioUpload()"> Audio/Video Upload
+        <br />
+        <input type="radio" onclick="audioSync()"> Sync With Master
+      </form>
+    </dev>
+  </body>
+</html>
