@@ -197,61 +197,61 @@ int play(const char *url, int server_socket) {
 	}
 
 	int stream_id = -1;
-   	int i;
+	int i;
 
 	for(i = 0; i < afctx->nb_streams; i++){
 		if(afctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO){
 			stream_id = i;
-         	break;
-    		}
+			break;
+		}
 	}
 
 	if(stream_id == -1){
-   		die("Could not find Audio Stream");
+		die("Could not find Audio Stream");
 	}
 
 	const AVCodec *codec = avcodec_find_decoder(afctx->streams[stream_id]->codecpar->codec_id);
 
- 	if(codec==NULL){
-   		die("cannot find codec!");
-   	}
+	if(codec==NULL){
+		die("cannot find codec!");
+	}
 
-   	AVCodecContext *ctx = avcodec_alloc_context3(codec);
+	AVCodecContext *ctx = avcodec_alloc_context3(codec);
 
-   	if (!ctx) {
-       	die("failed to allocate AVCodecContext");
-   	}
+	if (!ctx) {
+		die("failed to allocate AVCodecContext");
+	}
 
-   	if (avcodec_parameters_to_context(ctx, afctx->streams[stream_id]->codecpar) < 0) {
-       	die("failed to fill the AVCodecContext");
-   	}
+	if (avcodec_parameters_to_context(ctx, afctx->streams[stream_id]->codecpar) < 0) {
+		die("failed to fill the AVCodecContext");
+	}
 
-   	if(avcodec_open2(ctx, codec, NULL) < 0){
-       	die("Codec cannot be found");
-   	}
+	if(avcodec_open2(ctx, codec, NULL) < 0){
+		die("Codec cannot be found");
+	}
 
-   	enum AVSampleFormat sfmt = ctx->sample_fmt;
+	enum AVSampleFormat sfmt = ctx->sample_fmt;
 
-   	if (sfmt == AV_SAMPLE_FMT_NONE) {
-       	die("no sample fmt detected\n");
-   	}
+	if (sfmt == AV_SAMPLE_FMT_NONE) {
+		die("no sample fmt detected\n");
+	}
 
-   	int channels = ctx->ch_layout.nb_channels;
-   	int sample_rate = ctx->sample_rate;
-   	int sampleSize = av_get_bytes_per_sample(sfmt);
+	int channels = ctx->ch_layout.nb_channels;
+	int sample_rate = ctx->sample_rate;
+	int sampleSize = av_get_bytes_per_sample(sfmt);
 
 	if (prepare_snd_device(channels, AVSampleFormat_SNDFormat[sfmt], sample_rate) < 0) {
 		return -1;
 	}
 
-   	int res = 0;
-   	AVPacket *packet = av_packet_alloc();
-   	AVFrame *frame = av_frame_alloc();
-   	int buf_siz = 3 * sample_rate * sampleSize * channels; // 3sec data
-   	uint8_t buffer[buf_siz];
-   	int count = 0;
-   	int resend_packet = 0;
-   	long frames = 0;
+	int res = 0;
+	AVPacket *packet = av_packet_alloc();
+	AVFrame *frame = av_frame_alloc();
+	int buf_siz = 3 * sample_rate * sampleSize * channels; // 3sec data
+	uint8_t buffer[buf_siz];
+	int count = 0;
+	int resend_packet = 0;
+	long frames = 0;
 	int sbuffer_s = 32 * 1024;
 	int f_sbuffer_s = 4 + sbuffer_s;
 	int s_count = 0;
@@ -260,10 +260,10 @@ int play(const char *url, int server_socket) {
 	struct sctp_sndrcvinfo sinfo;
 
 	sbuffer[0] = channels;
-    	sbuffer[1] = AVSampleFormat_SNDFormat[sfmt];
-    	*(uint16_t *)(sbuffer + 2) = htons(sample_rate);
-    	bzero(&sinfo, sizeof(sinfo));
-    	sinfo.sinfo_flags |= SCTP_SENDALL;
+	sbuffer[1] = AVSampleFormat_SNDFormat[sfmt];
+	*(uint16_t *)(sbuffer + 2) = htons(sample_rate);
+	bzero(&sinfo, sizeof(sinfo));
+	sinfo.sinfo_flags |= SCTP_SENDALL;
 
 	while(av_read_frame(afctx, packet) >= 0) {
 		if(packet->stream_index == stream_id) {
@@ -341,9 +341,9 @@ int play(const char *url, int server_socket) {
 		av_packet_unref(packet);
 	}
 
-    snd_pcm_writei(pcmhandle, (void **)buffer, snd_pcm_bytes_to_frames(pcmhandle, count));
+	snd_pcm_writei(pcmhandle, (void **)buffer, snd_pcm_bytes_to_frames(pcmhandle, count));
 
-    if (count && clients_connected == CC) {
+	if (count && clients_connected == CC) {
 		s_count = count / sbuffer_s;
 		for (i = 0; i < s_count; i++) {
 			if (clients_connected == CC) {
@@ -368,12 +368,12 @@ int play(const char *url, int server_socket) {
 		}
 	}
 
-    avformat_close_input(&afctx);
-    av_packet_free(&packet);
-    av_frame_free(&frame);
-    avcodec_free_context(&ctx);
-    avcodec_close(ctx);
-    return 0;
+	avformat_close_input(&afctx);
+	av_packet_free(&packet);
+	av_frame_free(&frame);
+	avcodec_free_context(&ctx);
+	avcodec_close(ctx);
+	return 0;
 }
 */
 import "C"
