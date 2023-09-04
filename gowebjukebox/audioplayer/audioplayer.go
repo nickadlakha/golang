@@ -36,18 +36,18 @@ int prepare_snd_device(int channels, int sample_format, int sample_rate) {
 
 	if (!pcmhandle) {
 		if ((res = snd_pcm_open(&pcmhandle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
-   			die("can't open wave device: %s\n", snd_strerror(res));
+			die("can't open wave device: %s\n", snd_strerror(res));
 		}
 	}
 
 	if ((res = snd_pcm_hw_params_malloc(&hwparams)) < 0) {
 		die("hwparams couldn't be queried: %s\n", snd_strerror(res));
-    }
+	}
 
 	if ((res = snd_pcm_hw_params_any(pcmhandle, hwparams)) < 0) {
 		snd_pcm_hw_params_free(hwparams);
 		die("sound card can't initialized: %s\n", snd_strerror(res));
-    }
+	}
 
 	snd_pcm_hw_params_set_format(pcmhandle, hwparams, sample_format);
 	snd_pcm_hw_params_set_rate_near(pcmhandle, hwparams, &sample_rate, NULL);
