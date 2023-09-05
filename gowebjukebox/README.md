@@ -16,7 +16,7 @@ iv)  running a non master node
       [old player]  ./jukebox
       [new player]  ./jukebox_new
           
- v) interaction with jukebox, point your browser to http://ip_address_of_the_running_jukebox_node:3000
+ v) interaction with jukebox, point your browser to `http://ip_address_of_the_running_jukebox_node:3000` **ex:** `http://localhost:3000`
 
 
 Web Jukebox (Play mp3 file / Stream ) -- DOCKER
