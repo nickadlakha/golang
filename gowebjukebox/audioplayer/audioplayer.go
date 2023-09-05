@@ -368,6 +368,7 @@ int play(const char *url, int server_socket) {
 		}
 	}
 
+	snd_pcm_drain(pcmhandle);
 	avformat_close_input(&afctx);
 	av_packet_free(&packet);
 	av_frame_free(&frame);
@@ -473,7 +474,6 @@ func Player(songlist <-chan string, msgQC *jst.JukeboxStruct) {
 	}
 
 	if C.pcmhandle != nil {
-		C.snd_pcm_drain(C.pcmhandle)
 		C.snd_pcm_close(C.pcmhandle)
 	}
 }
