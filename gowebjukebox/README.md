@@ -1,23 +1,20 @@
-Creating jukebox binary
+Creating/Running jukebox
 -----------------------
-i) copy gowebjukebox folder to ~/go/src
+i)  `cd` to gowebjukebox/jukebox
 
-ii) go to ~/go/src/gowebjukebox/jukebox
+ii) `run` go build [jukebox.go | jukebox_new.go]
+  
+iii) running a master node
 
-iii) execute go build jukebox.go
-
-iv) running jukebox, go to ~/go/src/gowebjukebox/jukebox
-
-a) running a master node
-
-    at the command prompt run the following command 
+     at the command prompt run the following command 
         
-        SMASTER=1 AMQP_USER=rabbitmq_user AMQP_PASSWD=rabbitmq_password ./jukebox
-b) running a non master node
+     [old player] SMASTER=1 AMQP_USER=rabbitmq_user AMQP_PASSWD=rabbitmq_password ./jukebox
+     [new player] SMASTER=1 ./jukebox_new
+
+iv)  running a non master node
         
-        run the following command
-          
-          ./jukebox
+      [old player]  ./jukebox
+      [new player]  ./jukebox_new
           
  v) interaction with jukebox, point your browser to http://ip_address_of_the_running_jukebox_node:3000
 
