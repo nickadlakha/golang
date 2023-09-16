@@ -21,12 +21,12 @@ type Mp3Info_ struct {
 
 type JukeboxStruct struct {
 	AmqpHost     string
-	FlagMaster   bool
-	PlayerR      bool
 	Sync         Stype
 	PcmData      interface{}
 	Mp3Data      interface{}
 	Connection   interface{}
 	Mp3Info      Mp3Info_
 	SkipSinkHost bool
+	FlagMaster   bool
+	PlayerR      bool
 }
