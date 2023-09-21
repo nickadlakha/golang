@@ -4,7 +4,7 @@ Pre-requisites: libmpg123 libsctp libavformat libavcodec libavutil libasound2
 
      ex: on debian based systems one can use following command to install above libraries and related header files
    
-     `sudo apt-get install -y libmpg123-dev libasound2-dev libavformat-dev libavcodec-dev libavutil-dev`
+     `sudo apt-get install -y libmpg123-dev libsctp-dev libasound2-dev libavformat-dev libavcodec-dev libavutil-dev`
 
 1) `cd` to gowebjukebox/jukebox
 
