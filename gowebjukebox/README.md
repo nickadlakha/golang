@@ -1,22 +1,32 @@
 Creating/Running jukebox
 -----------------------
-i)  `cd` to gowebjukebox/jukebox
+Pre-requisites: libmpg123 libsctp libavformat libavcodec libavutil libasound2
 
-ii) `run` go build [jukebox.go | jukebox_new.go]
+     ex: on debian based systems one can use following command to install above libraries and related header files
+   
+     `sudo apt-get install -y libmpg123-dev libasound2-dev libavformat-dev libavcodec-dev libavutil-dev`
+
+1) `cd` to gowebjukebox/jukebox
+
+2) `run` go build [jukebox.go | jukebox_new.go]
   
-iii) running a master node
+3) running a master node
 
-     at the command prompt run the following command 
+   at the command prompt run the following command 
         
-     [old player] SMASTER=1 AMQP_USER=rabbitmq_user AMQP_PASSWD=rabbitmq_password ./jukebox
-     [new player] SMASTER=1 ./jukebox_new
+   [old player] SMASTER=1 AMQP_USER=rabbitmq_user AMQP_PASSWD=rabbitmq_password ./jukebox
 
-iv)  running a non master node
+   [new player] SMASTER=1 ./jukebox_new
+
+5) running a non master node
         
-      [old player]  ./jukebox
-      [new player]  ./jukebox_new
+   [old player]  ./jukebox
+
+   [new player]  ./jukebox_new
           
- v) interaction with jukebox, point your browser to `http://ip_address_of_the_running_jukebox_node:3000` **ex:** `http://localhost:3000`
+7) interaction with jukebox, point your browser to `http://ip_address_of_the_running_jukebox_node:3000`
+
+   **ex:** `http://localhost:3000`
 
 
 Web Jukebox (Play mp3 file / Stream ) -- DOCKER
