@@ -9,3 +9,5 @@
 3) Usage help
 
   ./oss
+
+gowebjukebox: https://github.com/nickadlakha/golang/tree/master/gowebjukebox#creatingrunning-jukebox
